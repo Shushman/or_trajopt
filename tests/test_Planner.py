@@ -130,25 +130,28 @@ class TestTrajopt(unittest.TestCase):
             cspec = self.robot.GetActiveConfigurationSpecification()
             trajopt_planner = TrajoptPlanner()
 
+            #Get a bunch of directions
             directions = [[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]]
             distance = 0.1
 
-            #Get start pose
+            #Get start pose (will compare against)
             start_pose = self.manipulator.GetEndEffectorTransform()
-
 
             for direction in directions:
                 
+                #Set to start for each new test
                 self.robot.SetActiveDOFValues(self.START_CONFIG)
 
+                #Get the displacement vector along direction
                 dir_np = numpy.array(direction)
                 dist = numpy.transpose(distance*dir_np/numpy.linalg.norm(dir_np))
 
+                #Get the expected pose
                 goal_pose = start_pose
                 goal_pose[0:3,3] = start_pose[0:3,3] + dist 
 
+                #Plan and get last point in trajectory and compare
                 traj = trajopt_planner.PlanToEndEffectorOffset(self.robot,direction,distance)
-
                 self.robot.SetActiveDOFValues(traj.GetWaypoint(traj.GetNumWaypoints()-1,cspec))
                 goal_pose_returned = self.manipulator.GetEndEffectorTransform()
 
